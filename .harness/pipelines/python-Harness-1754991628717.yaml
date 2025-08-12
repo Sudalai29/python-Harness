@@ -124,6 +124,6 @@ pipeline:
   properties:
     ci:
       codebase:
-        connectorRef: pythonHarness
+        connectorRef: pythonHareness
         repoName: python-Hareness
         build: <+input>
