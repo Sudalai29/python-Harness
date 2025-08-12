@@ -1,0 +1,14 @@
+inputSet:
+  name: Build_Sudalai29_python_Harness_1754983557728-pr-trigger-input-set
+  identifier: Build_Sudalai29_python_Harness_1754983557728prtriggerinputset
+  orgIdentifier: default
+  projectIdentifier: Python
+  pipeline:
+    identifier: Build_Sudalai29_python_Harness_1754983557728
+    properties:
+      ci:
+        codebase:
+          build:
+            type: PR
+            spec:
+              number: <+trigger.prNumber>
