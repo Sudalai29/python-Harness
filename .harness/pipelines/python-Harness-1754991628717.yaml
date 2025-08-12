@@ -127,3 +127,14 @@ pipeline:
         connectorRef: pythonHareness
         repoName: python-Harness
         build: <+input>
+  variables:
+    - name: SONAR_HOST_URL
+      type: String
+      description: sonar_url
+      required: false
+      value: http://13.203.26.146:9000/
+    - name: SONAR_TOKEN
+      type: String
+      description: ""
+      required: false
+      value: sqa_f627490b433b9e57816aa771a555e2d9ed27e254
