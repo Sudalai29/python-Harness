@@ -1,0 +1,14 @@
+inputSet:
+  name: Build_Sudalai29_python_Harness_1754991638142-push-trigger-input-set
+  identifier: Build_Sudalai29_python_Harness_1754991638142pushtriggerinputset
+  orgIdentifier: default
+  projectIdentifier: PythonHarness
+  pipeline:
+    identifier: Build_Sudalai29_python_Harness_1754991638142
+    properties:
+      ci:
+        codebase:
+          build:
+            type: branch
+            spec:
+              branch: <+trigger.branch>
