@@ -1,0 +1,136 @@
+pipeline:
+  name: Calculator CI Pipeline
+  identifier: calculator_ci_demo
+  projectIdentifier: default
+  orgIdentifier: default
+  tags: {}
+  stages:
+    - stage:
+        name: Build and Test
+        identifier: build_and_test
+        description: "Build, test, and analyze Python calculator app"
+        type: CI
+        spec:
+          cloneCodebase: true
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Setup Python Environment
+                  identifier: setup_python
+                  spec:
+                    shell: Bash
+                    command: |
+                      echo "Setting up Python environment"
+                      python3 --version
+                      pip3 install --upgrade pip
+                      
+              - step:
+                  type: Run
+                  name: Install Dependencies
+                  identifier: install_deps
+                  spec:
+                    shell: Bash
+                    command: |
+                      echo "Installing dependencies"
+                      pip3 install -r requirements.txt
+                      pip3 install pytest pytest-cov bandit safety
+                      
+              - step:
+                  type: Run
+                  name: Run Unit Tests
+                  identifier: run_tests
+                  spec:
+                    shell: Bash
+                    command: |
+                      echo "Running unit tests"
+                      python3 -m pytest test_calculator.py -v --cov=calculator --cov-report=xml
+                      
+              - step:
+                  type: Run
+                  name: Security Scan with Bandit
+                  identifier: security_scan
+                  spec:
+                    shell: Bash
+                    command: |
+                      echo "Running security analysis with Bandit"
+                      bandit -r . -f json -o bandit-report.json || true
+                      bandit -r . || true
+                      
+              - step:
+                  type: Run
+                  name: Dependency Vulnerability Check
+                  identifier: safety_check
+                  spec:
+                    shell: Bash
+                    command: |
+                      echo "Checking for vulnerable dependencies"
+                      safety check --json --output safety-report.json || true
+                      safety check || true
+                      
+              - step:
+                  type: Run
+                  name: Code Quality Check
+                  identifier: code_quality
+                  spec:
+                    shell: Bash
+                    command: |
+                      echo "Running code quality checks"
+                      pip3 install flake8 pylint
+                      flake8 calculator.py --max-line-length=120 --output-file=flake8-report.txt || true
+                      pylint calculator.py --output-format=json > pylint-report.json || true
+                      
+              - step:
+                  type: Run
+                  name: SonarQube Analysis
+                  identifier: sonar_analysis
+                  spec:
+                    shell: Bash
+                    command: |
+                      echo "Preparing for SonarQube analysis"
+                      # Install sonar-scanner
+                      wget -q https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
+                      unzip -q sonar-scanner-cli-4.8.0.2856-linux.zip
+                      export PATH=$PATH:$PWD/sonar-scanner-4.8.0.2856-linux/bin
+                      
+                      # Run SonarQube analysis
+                      sonar-scanner \
+                        -Dsonar.projectKey=calculator-demo \
+                        -Dsonar.projectName="Calculator Demo" \
+                        -Dsonar.projectVersion=1.0 \
+                        -Dsonar.sources=. \
+                        -Dsonar.language=py \
+                        -Dsonar.python.coverage.reportPaths=coverage.xml \
+                        -Dsonar.python.bandit.reportPaths=bandit-report.json \
+                        -Dsonar.host.url=${SONAR_HOST_URL} \
+                        -Dsonar.login=${SONAR_TOKEN}
+                      
+              - step:
+                  type: Run
+                  name: Archive Artifacts
+                  identifier: archive_artifacts
+                  spec:
+                    shell: Bash
+                    command: |
+                      echo "Archiving test results and reports"
+                      mkdir -p artifacts
+                      cp *.xml artifacts/ 2>/dev/null || true
+                      cp *.json artifacts/ 2>/dev/null || true
+                      cp *.txt artifacts/ 2>/dev/null || true
+                      ls -la artifacts/
+          caching:
+            enabled: false
+          sharedPaths:
+            - /root/.cache/pip
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.Git_Connector
+        repoName: calculator-demo
+        build: <+input>
