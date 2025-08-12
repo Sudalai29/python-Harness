@@ -131,6 +131,6 @@ pipeline:
   properties:
     ci:
       codebase:
-        connectorRef: account.Git_Connector
+        connectorRef: Harness-demo
         repoName: calculator-demo
         build: <+input>
