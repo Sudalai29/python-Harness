@@ -131,6 +131,6 @@ pipeline:
   properties:
     ci:
       codebase:
-        connectorRef: Harness-demo
+        connectorRef: Harnessdemo 
         repoName: calculator-demo
         build: <+input>
