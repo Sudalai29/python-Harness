@@ -1,6 +1,6 @@
 pipeline:
   name: Calculator CI Pipeline
-  identifier: calculator_ci_demo
+  identifier: Calculator CI Pipeline
   projectIdentifier: default
   orgIdentifier: default
   tags: {}
