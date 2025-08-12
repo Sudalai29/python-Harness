@@ -125,5 +125,5 @@ pipeline:
     ci:
       codebase:
         connectorRef: pythonHareness
-        repoName: python-Hareness
+        repoName: python-Harness
         build: <+input>
