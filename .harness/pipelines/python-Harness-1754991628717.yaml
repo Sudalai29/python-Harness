@@ -138,3 +138,18 @@ pipeline:
       description: ""
       required: false
       value: sqa_8f74799cbc077791d357a7583caf7671c206ed36
+  notificationRules:
+    - name: Pipeline
+      identifier: Pipeline
+      pipelineEvents:
+        - type: PipelineFailed
+        - type: StepFailed
+        - type: StageFailed
+          forStages:
+            - AllStages
+        - type: PipelineSuccess
+      notificationMethod:
+        type: Webhook
+        spec:
+          webhookUrl: https://67d4450afb34.ngrok-free.app/harness-webhook
+      enabled: true
