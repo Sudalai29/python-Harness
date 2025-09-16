@@ -151,5 +151,5 @@ pipeline:
       notificationMethod:
         type: Webhook
         spec:
-          webhookUrl: https://18c4ea47c9eb.ngrok-free.app/harness-webhook
+          webhookUrl: https://0c8eb2951302.ngrok-free.app/harness-webhook
       enabled: true
