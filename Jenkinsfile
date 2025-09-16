@@ -1,6 +1,20 @@
 pipeline {
-    agent any   // use any available agent (switch to docker if plugin installed)
+    agent {
+        docker {
+            image 'python:3.10'   // fixes pip3 not found
+        }
+    }
 
+    stages {
+        stage('Setup Python Environment') {
+            steps {
+                sh '''
+                    echo "Setting up Python environment"
+                    python --version
+                    pip --version
+                '''
+            }
+        }
     options {
         timestamps()
     }
