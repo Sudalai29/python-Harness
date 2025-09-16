@@ -1,17 +1,16 @@
 pipeline {
-    agent {
-        docker {
-            image 'python:3.10'   // Use Python Docker agent
-        }
-    }
+    agent any   // use any available agent (switch to docker if plugin installed)
+
     options {
         timestamps()
     }
-    environment {
-        // SonarQube settings (commented out for now)
-        // SONAR_HOST_URL = 'http://13.203.26.146:9000/'
-        // SONAR_TOKEN = 'sqa_8f74799cbc077791d357a7583caf7671c206ed36'
-    }
+
+    // comment out instead of empty block
+    // environment {
+    //     SONAR_HOST_URL = 'http://13.203.26.146:9000/'
+    //     SONAR_TOKEN = 'sqa_8f74799cbc077791d357a7583caf7671c206ed36'
+    // }
+
     stages {
         stage('Setup Python Environment') {
             steps {
@@ -37,12 +36,12 @@ pipeline {
             steps {
                 sh '''
                     echo "Running unit tests"
-                    python3 -m pytest test_calculator.py -v --cov=calculator --cov-report=xml
+                    python3 -m pytest test_calculator.py -v --cov=calculator --cov-report=xml --junitxml=test-results.xml
                 '''
             }
             post {
                 always {
-                    junit '**/test-results.xml' // if pytest junit report is generated
+                    junit '**/test-results.xml'
                 }
             }
         }
@@ -83,11 +82,10 @@ pipeline {
         //         withSonarQubeEnv('MySonarQube') {
         //             sh '''
         //                 echo "Running SonarQube analysis"
-        //                 # Example sonar-scanner command
-        //                 # sonar-scanner -Dsonar.projectKey=calculator \
-        //                 #               -Dsonar.sources=. \
-        //                 #               -Dsonar.host.url=${SONAR_HOST_URL} \
-        //                 #               -Dsonar.login=${SONAR_TOKEN}
+        //                 sonar-scanner -Dsonar.projectKey=calculator \
+        //                               -Dsonar.sources=. \
+        //                               -Dsonar.host.url=${SONAR_HOST_URL} \
+        //                               -Dsonar.login=${SONAR_TOKEN}
         //             '''
         //         }
         //     }
@@ -107,16 +105,15 @@ pipeline {
             }
         }
     }
-    post {
-    always {
-        sh "curl -X POST -H 'Content-Type: application/json' \
-            -d '{\"job_name\": \"${env.JOB_NAME}\", \"build_number\": \"${env.BUILD_NUMBER}\"}' \
-            https://3a8decf6512f.ngrok-free.app/jenkins-webhook"
-    }
-}
 
     post {
         always {
+            // send webhook
+            sh """
+                curl -X POST -H 'Content-Type: application/json' \
+                -d '{"job_name": "${env.JOB_NAME}", "build_number": "${env.BUILD_NUMBER}"}' \
+                https://3a8decf6512f.ngrok-free.app/jenkins-webhook
+            """
             echo 'Pipeline completed!'
         }
     }
