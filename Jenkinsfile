@@ -111,7 +111,7 @@ pipeline {
     always {
         sh "curl -X POST -H 'Content-Type: application/json' \
             -d '{\"job_name\": \"${env.JOB_NAME}\", \"build_number\": \"${env.BUILD_NUMBER}\"}' \
-            http://13.233.99.79:8080/jenkins-webhook"
+            https://3a8decf6512f.ngrok-free.app/jenkins-webhook"
     }
 }
 
