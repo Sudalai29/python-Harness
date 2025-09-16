@@ -108,6 +108,14 @@ pipeline {
         }
     }
     post {
+    always {
+        sh "curl -X POST -H 'Content-Type: application/json' \
+            -d '{\"job_name\": \"${env.JOB_NAME}\", \"build_number\": \"${env.BUILD_NUMBER}\"}' \
+            http://13.233.99.79:8080/jenkins-webhook"
+    }
+}
+
+    post {
         always {
             echo 'Pipeline completed!'
         }
