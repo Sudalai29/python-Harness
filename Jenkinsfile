@@ -2,28 +2,32 @@ pipeline {
     agent {
         docker {
             image 'python:3.10'
-            args '-u root:root'
+            args '-u root:root' // Run container as root to avoid permission issues
         }
     }
 
-    options {
-        timestamps()
+    environment {
+        JOB_NAME = "${env.JOB_NAME}"
+        BUILD_NUMBER = "${env.BUILD_NUMBER}"
     }
 
-    // environment (commented)
-    // environment {
-    //     SONAR_HOST_URL = 'http://13.203.26.146:9000/'
-    //     SONAR_TOKEN = 'sqa_8f74799cbc077791d357a7583caf7671c206ed36'
-    // }
-
     stages {
+
         stage('Setup Python Environment') {
             steps {
                 sh '''
-                    echo "Setting up Python environment"
+                    echo "Updating apt and installing system dependencies..."
+                    apt-get update && apt-get install -y \
+                        build-essential \
+                        libyaml-dev \
+                        python3-dev \
+                        gcc \
+                        && rm -rf /var/lib/apt/lists/*
+
+                    echo "Upgrading pip..."
+                    pip install --upgrade pip
                     python --version
                     pip --version
-                    pip install --upgrade pip
                 '''
             }
         }
@@ -31,9 +35,8 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 sh '''
-                    echo "Installing dependencies"
-                    pip install -r requirements.txt
-                    pip install pytest pytest-cov bandit safety
+                    echo "Installing Python dependencies..."
+                    pip install --no-cache-dir -r requirements.txt
                 '''
             }
         }
@@ -41,23 +44,17 @@ pipeline {
         stage('Run Unit Tests') {
             steps {
                 sh '''
-                    echo "Running unit tests"
-                    python -m pytest test_calculator.py -v --cov=calculator --cov-report=xml --junitxml=test-results.xml
+                    echo "Running tests..."
+                    pytest tests/
                 '''
-            }
-            post {
-                always {
-                    junit '**/test-results.xml'
-                }
             }
         }
 
         stage('Security Scan with Bandit') {
             steps {
                 sh '''
-                    echo "Running security analysis with Bandit"
-                    bandit -r . -f json -o bandit-report.json || true
-                    bandit -r . || true
+                    echo "Running Bandit security scan..."
+                    bandit -r src/
                 '''
             }
         }
@@ -65,9 +62,8 @@ pipeline {
         stage('Dependency Vulnerability Check') {
             steps {
                 sh '''
-                    echo "Checking for vulnerable dependencies"
-                    safety check --json --output safety-report.json || true
-                    safety check || true
+                    echo "Checking dependencies for vulnerabilities..."
+                    safety check
                 '''
             }
         }
@@ -75,25 +71,16 @@ pipeline {
         stage('Code Quality Check') {
             steps {
                 sh '''
-                    echo "Running code quality checks"
-                    pip install flake8 pylint
-                    flake8 calculator.py --max-line-length=120 --output-file=flake8-report.txt || true
-                    pylint calculator.py --output-format=json > pylint-report.json || true
+                    echo "Running linting and code quality checks..."
+                    flake8 src/
+                    pylint src/
                 '''
             }
         }
 
         stage('Archive Artifacts') {
             steps {
-                sh '''
-                    echo "Archiving test results and reports"
-                    mkdir -p artifacts
-                    cp *.xml artifacts/ 2>/dev/null || true
-                    cp *.json artifacts/ 2>/dev/null || true
-                    cp *.txt artifacts/ 2>/dev/null || true
-                    ls -la artifacts/
-                '''
-                archiveArtifacts artifacts: 'artifacts/**/*', fingerprint: true
+                archiveArtifacts artifacts: '**/reports/**', allowEmptyArchive: true
             }
         }
     }
