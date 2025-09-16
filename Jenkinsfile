@@ -108,12 +108,14 @@ pipeline {
 
     post {
         always {
-            // send webhook
-            sh """
-                curl -X POST -H 'Content-Type: application/json' \
-                -d '{"job_name": "${env.JOB_NAME}", "build_number": "${env.BUILD_NUMBER}"}' \
-                https://3a8decf6512f.ngrok-free.app/jenkins-webhook
-            """
+            withCredentials([string(credentialsId: 'python', variable: 'JENKINS_API_TOKEN')]) {
+                sh '''
+                    curl -u "admin:${JENKINS_API_TOKEN}" \
+                         -X POST -H "Content-Type: application/json" \
+                         -d '{"job_name": "${JOB_NAME}", "build_number": "${BUILD_NUMBER}"}' \
+                         https://3a8decf6512f.ngrok-free.app/jenkins-webhook
+                '''
+            }
             echo 'Pipeline completed!'
         }
     }
